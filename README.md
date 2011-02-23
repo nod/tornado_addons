@@ -1,8 +1,5 @@
 # tornado_addons
 
-Consider this the wicked witch pedaling frantically around Dorothy's house as
-it swirls in the air.... (lame jokes over).
-
 This is a collection of addons and accompanying unit tests for the excellent
 [Tornado web server](http://www.tornadoweb.org/)
 
