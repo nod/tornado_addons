@@ -8,7 +8,9 @@ Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0.html).
 
 ## Installation
 
-Just place this directory in your python path.
+Just place this directory in your python path or run the following:
+
+    sudo python setup.py install
 
 ## Testing
 
