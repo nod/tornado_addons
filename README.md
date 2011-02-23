@@ -47,12 +47,11 @@ Here's an example with normal callbacks.
     class SomeHandler(tornado.web.RequestHandler):
         def get(self):
             self.somedata = 'xxx'
-            AsyncHTTPClient.fetch(
-                'http://over/there',
+            AsyncHTTPClient.fetch( 'http://over/there',
                 callback=self.my_async_http_cb )
 
         def my_async_http_cb(self, fetch_data):
-            # do stuff here....
+            # do stuff with fetchdata here
             self.write(self.somedata)
 
 
@@ -64,12 +63,15 @@ Or,  you can wrap your methods with async_yield...
         @async_yield
         def get(self):
             somedata = 'xxx'
-            fetchdata = yield AsyncHTTPClient.fetch(
-                                  'http://over/there',
-                                  callback=self.async_cb )
+			fetchdata = yield AsyncHTTPClient.fetch( 'http://over/there',
+                                  callback=self.yield_cb )
+            # do stuff with fetchdata here
             self.write(somedata)
+
 
 The @async_yield wrapper doesn't work for every method with callbacks but it
 does cleanup your RequestHandlers quite nicely and really streamlines workflow.
 
+You begin to see the real power of this when you start to have handlers that make
+multiple async calls.
 
