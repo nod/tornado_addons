@@ -1,7 +1,7 @@
 import unittest
 import tornado.web
 
-from ..route import route, route_redirect
+from ..tornado_addons.route import route, route_redirect
 
 # NOTE - right now, the route_redirect function is not tested.
 

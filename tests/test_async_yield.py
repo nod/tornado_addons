@@ -1,5 +1,5 @@
 
-from .. import async_yield as ay
+from ..tornado_addons.async_yield import async_yield, AsyncYieldMixin
 
 import tornado
 from random import randint
@@ -7,7 +7,7 @@ from random import randint
 from tornado.testing import AsyncTestCase
 
 
-class AYHandler(tornado.web.RequestHandler, ay.AsyncYieldMixin):
+class AYHandler(tornado.web.RequestHandler, AsyncYieldMixin):
     """
     very basic handler for writing async yield tests on a RequestHandler
     """
@@ -24,7 +24,7 @@ class AYHandler(tornado.web.RequestHandler, ay.AsyncYieldMixin):
         """
         self.test_ioloop.add_callback(lambda: callback(newdata))
 
-    @ay.async_yield
+    @async_yield
     def some_async_func(self, ioloop, val, callback):
         self.test_ioloop = ioloop # we have to fake this for tests
         results = yield self.async_assign(val, self.yield_cb)

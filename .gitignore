@@ -7,3 +7,5 @@
 .DS_Store
 *.swp
 *.pyc
+
+build/*
