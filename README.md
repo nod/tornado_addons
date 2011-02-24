@@ -77,3 +77,27 @@ does cleanup your RequestHandlers quite nicely and really streamlines workflow.
 You begin to see the real power of this when you start to have handlers that make
 multiple async calls.
 
+
+### CushionDBMixin
+
+Cushion is a bit of an extraction layer around
+[trombi](http://github.com/inoi/trombi), an asynchronous CouchDB driver for
+Tornado.
+
+It provides a mixin for RequestHandler that simplifies database access,
+especially when used in conjunction with async_yield.
+
+    from tornado.web import RequestHandler
+    from tornado_addons.cushion import CushionDBMixin
+    from tornado_addons.async_yield import async_yield, AsyncYieldMixin
+
+    class SomeHandler(RequestHandler, CushionDBMixin, AsyncYieldMixin):
+
+        def prepare(self):
+            yield self.db_setup('someDB', uri_to_couchdb, self.yield_cb)
+
+		@async_yield
+		def get(self):
+            x = yield self.db_one('some_key')
+			# ... do stuff wth your data in x now
+
