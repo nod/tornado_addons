@@ -167,7 +167,6 @@ class CushionDBMixin(object):
     db_default = ''
     cushion = None
 
-
     def db_ignored_cb(self, *a, **ka):
         """
         do as much nothing as possible
@@ -177,7 +176,8 @@ class CushionDBMixin(object):
     def db_setup(self, dbname, uri, callback, **kwa):
         print "DB_SETUP", dbname, uri, callback, kwa
         self.db_default = dbname
-        self.cushion = Cushion(uri, io_loop=kwa.get('io_loop'))
+        if not self.cushion:
+            self.cushion = Cushion(uri, io_loop=kwa.get('io_loop'))
         self.cushion.open(
             dbname,
             callback=callback,

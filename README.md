@@ -65,7 +65,7 @@ Or,  you can wrap your methods with async_yield...
         @async_yield
         def get(self):
             somedata = 'xxx'
-			fetchdata = yield AsyncHTTPClient.fetch( 'http://over/there',
+            fetchdata = yield AsyncHTTPClient.fetch( 'http://over/there',
                                   callback=self.yield_cb )
             # do stuff with fetchdata here
             self.write(fetchdata.body if not fetchdata.error else '')
@@ -93,11 +93,12 @@ especially when used in conjunction with async_yield.
 
     class SomeHandler(RequestHandler, CushionDBMixin, AsyncYieldMixin):
 
+        @async_yield
         def prepare(self):
             yield self.db_setup('someDB', uri_to_couchdb, self.yield_cb)
 
-		@async_yield
-		def get(self):
+        @async_yield
+        def get(self):
             x = yield self.db_one('some_key')
-			# ... do stuff wth your data in x now
+            # ... do stuff wth your data in x now
 
