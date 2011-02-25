@@ -67,10 +67,8 @@ class Cushion(object):
         doesn't exist, an exception will be thrown unless create=True
         """
         if dbname in self:
-            print "found db in self"
             callback(self.get(dbname))
         else:
-            print "db NOT FOUND in self"
             def cb_wrapper(db, callback_=callback):
                 print "adding DB"
                 self._cb_add_db(db)
