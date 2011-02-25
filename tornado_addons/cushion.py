@@ -162,8 +162,11 @@ class Cushion(object):
 
 class CushionDBMixin(object):
 
-    db_default = ''
-    cushion = None
+
+    def prepare(self):
+        super(CushionDBMixin, self).prepare()
+        self.db_default = ''
+        self.cushion = None
 
     def db_ignored_cb(self, *a, **ka):
         """
@@ -181,22 +184,15 @@ class CushionDBMixin(object):
             callback=callback,
             create=kwa.get('create')  )
 
-    def _db_cb_get(self, callback, ignore_cb):
+    def _db_cb_get(self, callback=None, ignore_cb=False):
         # we should never have a callback AND ignore_cb
-        # and we should have at least one
-        assert(not callback and ignore_cb)
-        assert(callback or not ignore_cb)
-        if ignore_cb: callback_ = self.db_ignored_cb
-        elif not callback:
-            if not hasattr(self, 'yield_cb'):
-                raise Exception(
-                    "default callbacks must extend AsyncYieldMixin" )
-            callback_ = self.yield_cb
-        else: callback_ = callback
-        return callback_
+        assert(bool(not callback) ^ bool(ignore_cb)) # logical xor
+
+        if ignore_cb: callback = self.db_ignored_cb
+        return callback
 
 
-    def db_save(self, data, db=None, callback=None, ignore_cb=False):
+    def db_save(self, data, callback=None, db=None, ignore_cb=False):
         # default to the account database
         if not db: db = self.db_default
 
@@ -211,7 +207,7 @@ class CushionDBMixin(object):
             cush.save(db, data, callback)
 
 
-    def db_delete(self, obj, db=None, callback=None, ignore_cb=False):
+    def db_delete(self, obj, callback, db=None, ignore_cb=False):
         if not db: db = self.db_default
 
         callback = self._db_cb_get(callback, ignore_cb)
@@ -230,14 +226,11 @@ class CushionDBMixin(object):
         else: cush.delete(db, obj, callback)
 
 
-    def db_one(self, key, db=None, callback=None, **kwargs):
+    def db_one(self, key, callback, db=None, **kwargs):
         """
         Retrieve a particular document from couchdb.
 
-        If no callback is specified, this will assume self.yield_cb.  This
-        means, for convenience, this can be called like the following:
-
-          x = yield self.db_one(dbname, key)
+          x = yield self.db_one(key, cb, dbname)
 
         Parameters:
         db <-   name of the db to hit.  If this db isn't in our cushion, we'll
@@ -252,11 +245,6 @@ class CushionDBMixin(object):
         # default to the account db
         if not db: db = self.db_default
 
-        if not callback:
-            # for convenience, if no callback is passed in, we'll assume an
-            # async_yield situation.
-            callback = self.yield_cb
-
         cush = self.cushion
         # if the db's not open, we're going to open the db with the callback
         # being the same way we were called
@@ -268,7 +256,7 @@ class CushionDBMixin(object):
         else: cush.one(db, key, callback, **kwargs)
 
 
-    def db_view(self, resource, db=None, callback=None, **kwargs):
+    def db_view(self, resource, callback, db=None, **kwargs):
         """
         see comments for db_one
         """
@@ -277,10 +265,6 @@ class CushionDBMixin(object):
         # default to the account db
         if not db: db = self.db_default
 
-        if not callback:
-            # for convenience, if no callback is passed in, we'll assume an
-            # async_yield situation.
-            callback = self.yield_cb
         cush = self.cushion
         # if the db's not open, we're going to open the db with the callback
         # being the same way we were called
@@ -289,7 +273,7 @@ class CushionDBMixin(object):
             cush.open(
                 db,
                 lambda *a: self.db_view(
-                    resource, db, callback=callback, **kwargs )
+                    resource, db, callback, **kwargs )
                 )
         else:
             cush.view(db, resource, callback, **kwargs)

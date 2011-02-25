@@ -26,11 +26,16 @@ from random import randint
 from tornado.testing import AsyncTestCase
 
 
-class CushionHandler(CushionDBMixin, AsyncYieldMixin):
+class CushionHandler(CushionDBMixin, AsyncYieldMixin, tornado.web.RequestHandler):
     """
     very basic handler for writing async yield tests on a RequestHandler
     """
 
+    def __init__(self):
+        pass
+
+    def prepare(self):
+        super(CushionHandler,self).prepare()
 
 
 @skipIf(no_trombi, "not testing Cushion, trombi failed to import")
@@ -41,6 +46,7 @@ class CushionMixinTests(AsyncTestCase):
         dbname =  'test_db' + str(randint(100, 100000))
         print "WORKING ON", dbname
         self.handler = CushionHandler()
+        self.handler.prepare()
         # typically, this would be called in the Handler.prepare()
         self.handler.db_setup(
             dbname, baseurl,
@@ -58,7 +64,7 @@ class CushionMixinTests(AsyncTestCase):
         del self.handler
 
     def test_db_one(self):
-        self.handler.db_one(self.record['_id'], callback=self.stop)
+        self.handler.db_one(self.record['_id'], self.stop)
         rec = self.wait()
         self.assertTrue(self.record['fake'] == rec['fake'])
 
