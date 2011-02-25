@@ -66,7 +66,7 @@ Or,  you can wrap your methods with async_yield...
         def get(self):
             somedata = 'xxx'
             fetchdata = yield AsyncHTTPClient.fetch( 'http://over/there',
-                                  callback=self.yield_cb )
+                                  callback=self.mycb )
             # do stuff with fetchdata here
             self.write(fetchdata.body if not fetchdata.error else '')
 
