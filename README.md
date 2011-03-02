@@ -94,11 +94,8 @@ especially when used in conjunction with async_yield.
     class SomeHandler(RequestHandler, CushionDBMixin, AsyncYieldMixin):
 
         @async_yield
-        def prepare(self):
-            yield self.db_setup('someDB', uri_to_couchdb, self.yield_cb)
-
-        @async_yield
         def get(self):
+            yield self.db_setup('someDB', uri_to_couchdb, self.mycb)
             x = yield self.db_one('some_key')
             # ... do stuff wth your data in x now
 
