@@ -1,8 +1,7 @@
 from types import GeneratorType
-import inspect
 import tornado.web
 
-class TwasBrillig(object):
+class WrappedCall(object):
     def __init__(self, func, *a, **ka):
         self.func = func
         self.a = a
@@ -23,7 +22,7 @@ class TwasBrillig(object):
         If a single value is returned into the callback, that value is returned
         as the value of a yield expression.
 
-        i.e.: x = yield http.fetch(uri, self.yield_cb)
+        i.e.: x = yield http.fetch(uri, self.mycb)
 
         The response from the fetch will be returned to x.
 
@@ -33,9 +32,7 @@ class TwasBrillig(object):
         retval is None.
 
         It's a little gross but works for a large majority of the cases.
-
         """
-
         if args and ka:
             self._yield_continue((args, ka))
         elif ka and not args:
@@ -59,26 +56,22 @@ class TwasBrillig(object):
         return self.yielding
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if exc_type: print exc_type
         self.a[0].rm_func_callback(self.func.func_name)
 
 
 def async_yield(f):
     f = tornado.web.asynchronous(f)
     def yielding_(*a, **ka):
-        with TwasBrillig(f, *a, **ka) as f_:
+        with WrappedCall(f, *a, **ka) as f_:
             if type(f_) is not GeneratorType:
                 return f_
             else:
-                try:
-                    f_.next() # kickstart it
-                except StopIteration:
-                    print "STOPPED ITERATION"
-                    pass
+                try: f_.next() # kickstart it
+                except StopIteration: pass
     return yielding_
 
 
-class AsyncYieldMixin(object):
+class AsyncYieldMixin(tornado.web.RequestHandler):
 
     def prepare(self):
         self._yield_callbacks = {}
@@ -86,20 +79,18 @@ class AsyncYieldMixin(object):
 
     def add_func_callback(self, _id, cb):
         self._yield_callbacks[_id] = cb
+        print "adding", _id, cb
 
     def rm_func_callback(self, _id):
         del self._yield_callbacks[_id]
 
-    @property
-    def mycb(self):
+    def mycb(self, key):
         """
         make a callback
         """
-        # return inspect.stack()[1][3]  # <-- calling functions name
         # technically, this just looks up the callback, but eh. whatev
-        key = inspect.stack()[1][3]
         cb = self._yield_callbacks[key]
-        print "\n....... key",key," cb",cb
+        print "\n....... key",key," cb",cb, "\n\n"
 
         return cb
 

@@ -28,9 +28,22 @@ class AYHandler(AsyncYieldMixin, tornado.web.RequestHandler):
         self.test_ioloop.add_callback(lambda: callback(newdata))
 
     @async_yield
+    def embedded_async(self, callback):
+        xx = yield self.async_assign('me', self.mycb('embedded_async'))
+        callback(xx)
+
+    @async_yield
     def some_async_func(self, ioloop, val, callback):
         self.test_ioloop = ioloop # we have to fake this for tests
-        results = yield self.async_assign(val, self.mycb)
+        results = yield self.async_assign(val, self.mycb('some_async_func'))
+        callback(results)
+
+    @async_yield
+    def call_other_async(self, ioloop, val, callback):
+        cb = self.mycb('call_other_async')
+        self.test_ioloop = ioloop # we have to fake this for tests
+        yield self.embedded_async(cb)
+        results = yield self.async_assign(val, cb)
         callback(results)
 
 
@@ -53,3 +66,9 @@ class AYHandlerTests(AsyncTestCase):
         self.handler.some_async_func(self.io_loop, [1,2,3], self.stop)
         retval = self.wait()
         self.assertTrue(len(retval) == 3 and retval[1] == 2)
+
+    def test_call_other_async_yield(self):
+        self.handler.call_other_async(self.io_loop, [1,2,3], self.stop)
+        retval = self.wait()
+        self.assertTrue(len(retval) == 3 and retval[1] == 2)
+        
