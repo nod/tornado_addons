@@ -71,4 +71,4 @@ class AYHandlerTests(AsyncTestCase):
         self.handler.call_other_async(self.io_loop, [1,2,3], self.stop)
         retval = self.wait()
         self.assertTrue(len(retval) == 3 and retval[1] == 2)
-        
+
