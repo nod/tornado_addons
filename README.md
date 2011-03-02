@@ -64,9 +64,10 @@ Or,  you can wrap your methods with async_yield...
     class SomeHandler(tornado.web.RequestHandler, AsyncYieldMixin):
         @async_yield
         def get(self):
+            ycb = self.mycb('get')
             somedata = 'xxx'
             fetchdata = yield AsyncHTTPClient.fetch( 'http://over/there',
-                                  callback=self.mycb )
+                                  callback=ycb )
             # do stuff with fetchdata here
             self.write(fetchdata.body if not fetchdata.error else '')
 
@@ -95,7 +96,8 @@ especially when used in conjunction with async_yield.
 
         @async_yield
         def get(self):
-            yield self.db_setup('someDB', uri_to_couchdb, self.mycb)
-            x = yield self.db_one('some_key')
+            ycb = self.mycb('get')
+            yield self.db_setup('someDB', uri_to_couchdb, ycb)
+            x = yield self.db_one('some_key', ycb)
             # ... do stuff wth your data in x now
 
