@@ -62,9 +62,17 @@ Or,  you can wrap your methods with async_yield...
     from tornado_addons.async_yield import async_yield, AsyncYieldMixin
 
     class SomeHandler(tornado.web.RequestHandler, AsyncYieldMixin):
+
+		@async_yield
+		def some_func(self, callback):
+			x = yield some_async_call(callback=mycb('some_func'))
+			callback(x)
+
         @async_yield
+		@tornado.web.asynchronous
         def get(self):
             ycb = self.mycb('get')
+			retval = yield some_func(ycb)
             somedata = 'xxx'
             fetchdata = yield AsyncHTTPClient.fetch( 'http://over/there',
                                   callback=ycb )
@@ -95,9 +103,11 @@ especially when used in conjunction with async_yield.
     class SomeHandler(RequestHandler, CushionDBMixin, AsyncYieldMixin):
 
         @async_yield
+		@tornado.web.asynchronous
         def get(self):
             ycb = self.mycb('get')
             yield self.db_setup('someDB', uri_to_couchdb, ycb)
             x = yield self.db_one('some_key', ycb)
             # ... do stuff wth your data in x now
+			self.finish()
 

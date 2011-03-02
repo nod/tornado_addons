@@ -60,7 +60,7 @@ class WrappedCall(object):
 
 
 def async_yield(f):
-    f = tornado.web.asynchronous(f)
+    # f = tornado.web.asynchronous(f)
     def yielding_(*a, **ka):
         with WrappedCall(f, *a, **ka) as f_:
             if type(f_) is not GeneratorType:

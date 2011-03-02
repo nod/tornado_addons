@@ -1,6 +1,8 @@
 import logging
 import trombi
 
+import tornado.ioloop
+
 
 class CushionException(Exception):
     """
@@ -67,10 +69,11 @@ class Cushion(object):
         doesn't exist, an exception will be thrown unless create=True
         """
         if dbname in self:
-            callback(self.get(dbname))
+            tornado.ioloop.IOLoop.instance().add_callback(
+                lambda: callback(self.get(dbname)
+                ))
         else:
             def cb_wrapper(db, callback_=callback):
-                print "adding DB"
                 self._cb_add_db(db)
                 callback_(db)
             self._server.get(
@@ -175,7 +178,6 @@ class CushionDBMixin(object):
         pass
 
     def db_setup(self, dbname, uri, callback, **kwa):
-        print "DB_SETUP", dbname, uri, callback, kwa
         self.db_default = dbname
         if not self.cushion:
             self.cushion = Cushion(uri, io_loop=kwa.get('io_loop'))
@@ -186,7 +188,7 @@ class CushionDBMixin(object):
 
     def _db_cb_get(self, callback=None, ignore_cb=False):
         # we should never have a callback AND ignore_cb
-        assert(bool(not callback) ^ bool(ignore_cb)) # logical xor
+        assert(bool(callback) ^ bool(ignore_cb)) # logical xor
 
         if ignore_cb: callback = self.db_ignored_cb
         return callback
@@ -249,10 +251,7 @@ class CushionDBMixin(object):
         # if the db's not open, we're going to open the db with the callback
         # being the same way we were called
         if db not in cush: # db's not ready...
-            cush.open(
-                db,
-                lambda *a: self.db_one(key, db, callback=callback, **kwargs)
-                )
+            raise CushionDBNotReady('Tried to work with unopened db: ' + db)
         else: cush.one(db, key, callback, **kwargs)
 
 
