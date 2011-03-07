@@ -29,18 +29,18 @@ class AYHandler(AsyncYieldMixin, tornado.web.RequestHandler):
 
     @async_yield
     def embedded_async(self, callback):
-        xx = yield self.async_assign('me', self.mycb('embedded_async'))
+        xx = yield self.async_assign('me', self.yield_cb)
         callback(xx)
 
     @async_yield
     def some_async_func(self, ioloop, val, callback):
         self.test_ioloop = ioloop # we have to fake this for tests
-        results = yield self.async_assign(val, self.mycb('some_async_func'))
+        results = yield self.async_assign(val, self.yield_cb)
         callback(results)
 
     @async_yield
     def call_other_async(self, ioloop, val, callback):
-        cb = self.mycb('call_other_async')
+        cb = self.yield_cb
         self.test_ioloop = ioloop # we have to fake this for tests
         yield self.embedded_async(cb)
         results = yield self.async_assign(val, cb)

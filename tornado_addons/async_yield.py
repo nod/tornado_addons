@@ -48,19 +48,18 @@ class WrappedCall(object):
 
     def __enter__(self):
         # munge this instance's yield_cb to map to THIS instance of a context
+        obj = self.a[0]
+        self.old_yield_cb = obj.yield_cb
+        obj.yield_cb = self.yield_cb
         self.yielding = self.func(*self.a, **self.ka)
-        if type(self.yielding) is GeneratorType:
-            # the first member of self.a is going to be the instance the
-            # function belongs to. attach our yield_cb to that
-            self.a[0].add_func_callback(self.func.func_name, self.yield_cb)
         return self.yielding
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.a[0].rm_func_callback(self.func.func_name)
+        obj = self.a[0]
+        obj.yield_cb = self.old_yield_cb
 
 
 def async_yield(f):
-    # f = tornado.web.asynchronous(f)
     def yielding_(*a, **ka):
         with WrappedCall(f, *a, **ka) as f_:
             if type(f_) is not GeneratorType:
@@ -73,6 +72,8 @@ def async_yield(f):
 
 class AsyncYieldMixin(tornado.web.RequestHandler):
 
+    yield_cb = lambda *a, **ka: None
+
     def prepare(self):
         self._yield_callbacks = {}
         super(AsyncYieldMixin, self).prepare()
@@ -83,15 +84,5 @@ class AsyncYieldMixin(tornado.web.RequestHandler):
 
     def rm_func_callback(self, _id):
         del self._yield_callbacks[_id]
-
-    def mycb(self, key):
-        """
-        make a callback
-        """
-        # technically, this just looks up the callback, but eh. whatev
-        cb = self._yield_callbacks[key]
-        print "\n....... key",key," cb",cb, "\n\n"
-
-        return cb
 
 
