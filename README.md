@@ -65,13 +65,13 @@ Or,  you can wrap your methods with async_yield...
 
 		@async_yield
 		def some_func(self, callback):
-			x = yield some_async_call(callback=mycb('some_func'))
+			x = yield some_async_call(callback=self.yield_cb)
 			callback(x)
 
         @async_yield
 		@tornado.web.asynchronous
         def get(self):
-            ycb = self.mycb('get')
+            ycb = self.yield_cb
 			retval = yield some_func(ycb)
             somedata = 'xxx'
             fetchdata = yield AsyncHTTPClient.fetch( 'http://over/there',
@@ -80,11 +80,7 @@ Or,  you can wrap your methods with async_yield...
             self.write(fetchdata.body if not fetchdata.error else '')
 
 
-The @async_yield wrapper doesn't work for every method with callbacks but it
-does cleanup your RequestHandlers quite nicely and really streamlines workflow.
-
-You begin to see the real power of this when you start to have handlers that make
-multiple async calls.
+The @async_yield wrapper works for methods bound to a RequestHandler.
 
 
 ### CushionDBMixin

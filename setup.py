@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='tornado_addons',
-      version='0.01',
+      version='0.02',
       description='Tornado Web Add-ons',
       author='Jeremy Kelley',
       author_email='jeremy@collectivelabs.com',
