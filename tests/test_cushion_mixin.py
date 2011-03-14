@@ -44,7 +44,6 @@ class CushionMixinTests(AsyncTestCase):
     def setUp(self):
         AsyncTestCase.setUp(self)
         dbname =  'test_db' + str(randint(100, 100000))
-        print "WORKING ON", dbname
         self.handler = CushionHandler()
         self.handler.prepare()
         # typically, this would be called in the Handler.prepare()
@@ -54,7 +53,6 @@ class CushionMixinTests(AsyncTestCase):
         self.wait()
 
         # create one test record
-        print "self.handler.db_default=",self.handler.db_default, CushionDBMixin.db_default
         self.handler.cushion.save(self.handler.db_default, {'fake':'data'}, callback=self.stop)
         rec = self.wait()
         self.record = rec.raw()
