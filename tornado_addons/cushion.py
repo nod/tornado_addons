@@ -172,16 +172,12 @@ class Cushion(object):
 
 class CushionDBMixin(object):
 
-    db_default = ''
-
     def prepare(self):
         super(CushionDBMixin, self).prepare()
-        if not self.db_default: self.db_default = ''
 
     def db_setup(self, dbname, uri, callback, **kwa):
         self.db_default = dbname
-        if not self.cushion:
-            self.cushion = Cushion.new(uri, io_loop=kwa.get('io_loop'))
+        self.cushion = Cushion.new(uri, io_loop=kwa.get('io_loop'))
         self.cushion.open(
             dbname,
             callback=callback,
