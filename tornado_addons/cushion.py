@@ -172,6 +172,8 @@ class Cushion(object):
 
 class CushionDBMixin(object):
 
+    db_default = ''
+
     def prepare(self):
         super(CushionDBMixin, self).prepare()
         if not self.db_default: self.db_default = ''
