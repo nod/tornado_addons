@@ -18,6 +18,8 @@ class CushionDBNotReady(Exception):
     pass
 
 
+pincushion = None
+
 class Cushion(object):
     """
     Captures a pool of db connections here since each account can have their
@@ -25,6 +27,13 @@ class Cushion(object):
     """
     _pool = {}
     _server = None
+
+    @classmethod
+    def new(self, uri, user=None, password=None, **ka):
+        global pincushion
+        if not pincushion:
+            pincushion = Cushion(uri, user, password, **ka)
+        return pincushion
 
     def __init__(self, uri, user=None, password=None, **ka):
         self._server = trombi.Server(
@@ -163,9 +172,6 @@ class Cushion(object):
 
 class CushionDBMixin(object):
 
-    cushion = None
-    db_default = None
-
     def prepare(self):
         super(CushionDBMixin, self).prepare()
         if not self.db_default: self.db_default = ''
@@ -173,7 +179,7 @@ class CushionDBMixin(object):
     def db_setup(self, dbname, uri, callback, **kwa):
         self.db_default = dbname
         if not self.cushion:
-            CushionDBMixin.cushion = Cushion(uri, io_loop=kwa.get('io_loop'))
+            self.cushion = Cushion.new(uri, io_loop=kwa.get('io_loop'))
         self.cushion.open(
             dbname,
             callback=callback,
