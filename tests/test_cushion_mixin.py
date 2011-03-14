@@ -30,8 +30,8 @@ class CushionHandler(CushionDBMixin, AsyncYieldMixin, tornado.web.RequestHandler
     """
     very basic handler for writing async yield tests on a RequestHandler
     """
-
     def __init__(self):
+        # we need this to avoid RequestHandler's gross __init__ requirements
         pass
 
     def prepare(self):
@@ -54,6 +54,7 @@ class CushionMixinTests(AsyncTestCase):
         self.wait()
 
         # create one test record
+        print "self.handler.db_default=",self.handler.db_default, CushionDBMixin.db_default
         self.handler.cushion.save(self.handler.db_default, {'fake':'data'}, callback=self.stop)
         rec = self.wait()
         self.record = rec.raw()

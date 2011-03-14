@@ -51,22 +51,31 @@ class WrappedCall(object):
         obj = self.a[0]
         self.old_yield_cb = obj.yield_cb
         obj.yield_cb = self.yield_cb
+        print "enter", self.func
         self.yielding = self.func(*self.a, **self.ka)
         return self.yielding
 
     def __exit__(self, exc_type, exc_value, traceback):
         obj = self.a[0]
-        obj.yield_cb = self.old_yield_cb
+        print "exit", obj, self.func
+        # obj.yield_cb = self.old_yield_cb
 
 
 def async_yield(f):
     def yielding_(*a, **ka):
         with WrappedCall(f, *a, **ka) as f_:
             if type(f_) is not GeneratorType:
+                print "F_ not a generator", f_
                 return f_
-            else:
-                try: f_.next() # kickstart it
-                except StopIteration: pass
+
+            print "F_ gen", f_
+            try: 
+                f_.next() # kickstart it
+                print "f_ went", f_
+            except StopIteration:
+                print "STOP ITER", f_
+                pass
+
     return yielding_
 
 

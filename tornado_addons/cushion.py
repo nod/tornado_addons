@@ -69,13 +69,11 @@ class Cushion(object):
         doesn't exist, an exception will be thrown unless create=True
         """
         if dbname in self:
-            tornado.ioloop.IOLoop.instance().add_callback(
-                lambda: callback(self.get(dbname)
-                ))
+            callback(self.get(dbname))
         else:
-            def cb_wrapper(db, callback_=callback):
+            def cb_wrapper(db):
                 self._cb_add_db(db)
-                callback_(db)
+                callback(db)
             self._server.get(
                 name=dbname,
                 callback=cb_wrapper,
@@ -165,11 +163,21 @@ class Cushion(object):
 
 class CushionDBMixin(object):
 
+    cushion = None
+    db_default = None
 
     def prepare(self):
         super(CushionDBMixin, self).prepare()
-        self.db_default = ''
-        self.cushion = None
+        if not self.db_default: self.db_default = ''
+
+    def db_setup(self, dbname, uri, callback, **kwa):
+        self.db_default = dbname
+        if not self.cushion:
+            CushionDBMixin.cushion = Cushion(uri, io_loop=kwa.get('io_loop'))
+        self.cushion.open(
+            dbname,
+            callback=callback,
+            create=kwa.get('create') )
 
     def db_ignored_cb(self, *a, **ka):
         """
@@ -177,22 +185,12 @@ class CushionDBMixin(object):
         """
         pass
 
-    def db_setup(self, dbname, uri, callback, **kwa):
-        self.db_default = dbname
-        if not self.cushion:
-            self.cushion = Cushion(uri, io_loop=kwa.get('io_loop'))
-        self.cushion.open(
-            dbname,
-            callback=callback,
-            create=kwa.get('create')  )
-
     def _db_cb_get(self, callback=None, ignore_cb=False):
         # we should never have a callback AND ignore_cb
         assert(bool(callback) ^ bool(ignore_cb)) # logical xor
 
         if ignore_cb: callback = self.db_ignored_cb
         return callback
-
 
     def db_save(self, data, callback=None, db=None, ignore_cb=False):
         # default to the account database
@@ -207,7 +205,6 @@ class CushionDBMixin(object):
             cush.open( db, lambda *a: self.db_save(data, db, callback))
         else:
             cush.save(db, data, callback)
-
 
     def db_delete(self, obj, callback, db=None, ignore_cb=False):
         if not db: db = self.db_default
@@ -226,7 +223,6 @@ class CushionDBMixin(object):
                             ignore_cb=ignore_cb )
                 )
         else: cush.delete(db, obj, callback)
-
 
     def db_one(self, key, callback, db=None, **kwargs):
         """
@@ -250,10 +246,7 @@ class CushionDBMixin(object):
         cush = self.cushion
         # if the db's not open, we're going to open the db with the callback
         # being the same way we were called
-        if db not in cush: # db's not ready...
-            raise CushionDBNotReady('Tried to work with unopened db: ' + db)
-        else: cush.one(db, key, callback, **kwargs)
-
+        cush.one(db, key, callback, **kwargs)
 
     def db_view(self, resource, callback, db=None, **kwargs):
         """
@@ -276,6 +269,4 @@ class CushionDBMixin(object):
                 )
         else:
             cush.view(db, resource, callback, **kwargs)
-
-
 
