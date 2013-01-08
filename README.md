@@ -1,3 +1,20 @@
+
+# DEPRECATED
+
+This project has been pretty much abandoned in favor of splitting out the
+useful bits into their own standalone libraries.  This makes testing much
+easier and doesn't require people who just want individual bits to satisfy the
+requirements for the parts they don't wish to use.
+
+Please see [tornroutes](http://github.com/nod/tornroutes) for the route
+decorator.
+
+Async Yields have been deprecated in favor of the superior gen.task that's
+included in tornado core now.
+
+CushionDBMixin has been abandoned.  Sorry.
+
+
 # tornado_addons
 
 This is a collection of addons and accompanying unit tests for the excellent
